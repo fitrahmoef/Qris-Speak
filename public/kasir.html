@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kasir • Notifikasi Pembayaran</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card: rgba(255,255,255,.06);
+      --border: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.72);
+      --accent: #38bdf8;
+      --accent2:#7dd3fc;
+      --good:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --shadow: 0 12px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+      --gap: 16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(1100px 700px at 20% -10%, rgba(56,189,248,.22), transparent 55%),
+        radial-gradient(900px 600px at 90% 0%, rgba(34,197,94,.14), transparent 45%),
+        var(--bg);
+      min-height:100vh;
+    }
+    a{color:var(--accent2); text-decoration:none}
+    a:hover{color:var(--accent); text-decoration:underline}
+
+    .wrap{
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+      min-width: 240px;
+      flex: 1 1 560px;
+    }
+    .brand h1{
+      font-size: 16px;
+      margin:0;
+      letter-spacing:.2px;
+    }
+    .brand p{
+      margin:0;
+      color:var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      color: rgba(255,255,255,.86);
+      font-size: 12px;
+      white-space:nowrap;
+      flex: 0 0 auto;
+    }
+    .dot{
+      width:8px; height:8px; border-radius:50%;
+      background: var(--warn);
+      box-shadow: 0 0 0 4px rgba(245,158,11,.14);
+    }
+    .dot.good{ background: var(--good); box-shadow: 0 0 0 4px rgba(34,197,94,.14); }
+    .dot.bad{ background: var(--bad); box-shadow: 0 0 0 4px rgba(239,68,68,.14); }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 460px 1fr;
+      gap: var(--gap);
+      align-items:start;
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      min-width: 0;
+    }
+    .hd{
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .hd h2{
+      margin:0;
+      font-size: 13px;
+      letter-spacing:.2px;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.05);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: rgba(255,255,255,.86);
+      white-space: nowrap;
+    }
+    .bd{ padding: 16px; }
+
+    /* toolbar buttons */
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .btn{
+      appearance:none;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      transition: transform .06s ease, background .12s ease, border-color .12s ease;
+    }
+    .btn:hover{
+      background: rgba(255,255,255,.10);
+      border-color: rgba(255,255,255,.18);
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
+    .btn.primary{
+      border-color: rgba(56,189,248,.55);
+      background: rgba(56,189,248,.18);
+    }
+    .btn.primary:hover{
+      background: rgba(56,189,248,.25);
+      border-color: rgba(56,189,248,.75);
+    }
+
+    .kv{
+      display:grid;
+      grid-template-columns: 120px 1fr;
+      gap: 8px 12px;
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(0,0,0,.18);
+      min-width: 0;
+    }
+    .k{ color:var(--muted); font-size:12px; }
+    .v{ color:var(--text); font-size:13px; font-weight:800; word-break: break-word; }
+    .muted{ color: var(--muted); font-size: 12px; }
+
+    /* QR + Steps: make steps readable (not a thin column) */
+    .qrGrid{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      align-items:start;
+      min-width:0;
+    }
+    .qrBox{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      border-radius: 16px;
+      padding: 12px;
+      min-width:0;
+    }
+    .qr{
+      width:100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 14px;
+      overflow:hidden;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .qr img{ width:100%; height:100%; object-fit:cover; }
+
+    .steps{
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(0,0,0,.18);
+      padding: 12px;
+      min-width:0;
+    }
+    .steps h3{
+      margin:0 0 8px;
+      font-size: 12px;
+      color: rgba(255,255,255,.86);
+      letter-spacing:.2px;
+    }
+    .steps ol{
+      margin: 0 0 0 18px;
+      padding: 0;
+      color: rgba(255,255,255,.86);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .steps li{ margin: 7px 0; }
+    .money{ font-variant-numeric: tabular-nums; letter-spacing:.2px; }
+
+    /* Right side stack */
+    .stack{
+      display:grid;
+      gap: var(--gap);
+    }
+
+    .log{
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(0,0,0,.18);
+      overflow:hidden;
+    }
+    .log .lh{
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+    .log pre{
+      margin:0;
+      padding: 12px;
+      max-height: 280px;
+      overflow:auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      color: rgba(255,255,255,.85);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* ---------------- Responsive ---------------- */
+
+    /* Tablet: narrower left */
+    @media (max-width: 1040px){
+      .grid{ grid-template-columns: 420px 1fr; }
+    }
+
+    /* Tablet: collapse QR+steps to vertical, keep two main columns if space */
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+      .qrGrid{ grid-template-columns: 1fr; }
+    }
+
+    /* Mobile: full-width buttons, kv 1 col */
+    @media (max-width: 640px){
+      :root{ --gap: 12px; }
+      .wrap{ padding: 14px; }
+      .bd{ padding: 14px; }
+      .hd{ padding: 12px 14px; }
+      .brand h1{ font-size: 15px; }
+      .brand p{ font-size: 12px; }
+
+      .toolbar .btn{
+        flex: 1 1 100%;
+        width:100%;
+      }
+      .kv{ grid-template-columns: 1fr; }
+      .steps ol{ font-size: 12.5px; }
+      .log pre{ max-height: 220px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1>Kasir • Notifikasi Pembayaran (Demo)</h1>
+        <p>Generate QR pembayaran, pelanggan input nominal, dan kasir menerima notifikasi real-time + suara.</p>
+      </div>
+      <div class="pill">
+        <span class="dot" id="connDot"></span>
+        <span id="connText">Menghubungkan…</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: QR + Invoice -->
+      <section class="card">
+        <div class="hd">
+          <h2>QR Pembayaran</h2>
+          <span class="badge">DEMO</span>
+        </div>
+        <div class="bd">
+          <div class="toolbar">
+            <button class="btn primary" id="btnNew">Buat QR Pembayaran</button>
+            <button class="btn" id="btnSpeakLast" disabled>Speak Ulang</button>
+            <button class="btn" id="btnCopy" disabled>Copy Link</button>
+          </div>
+
+          <div class="kv">
+            <div class="k">Invoice</div><div class="v" id="inv">-</div>
+            <div class="k">Link bayar</div><div class="v"><a id="payLink" href="#" target="_blank" rel="noreferrer">-</a></div>
+          </div>
+
+          <div class="qrGrid">
+            <div class="qrBox">
+              <div class="muted" style="margin:0 0 10px">Scan QR dari perangkat pelanggan</div>
+              <div class="qr">
+                <img id="qrImg" alt="QR" />
+              </div>
+              <div class="muted" style="margin-top:10px">
+                Tips: tampilkan halaman ini di layar kasir, pelanggan scan dari HP.
+              </div>
+            </div>
+
+            <div class="steps">
+              <h3>Alur penggunaan</h3>
+              <ol>
+                <li>Klik <b>Buat QR Pembayaran</b>.</li>
+                <li>Pelanggan scan QR dari perangkat lain.</li>
+                <li>Pelanggan input nominal lalu klik <b>Bayar (Demo)</b>.</li>
+                <li>Kasir mengucapkan: <span class="money">“Pembayaran senilai Rp … berhasil”</span>.</li>
+              </ol>
+              <div class="muted" style="margin-top:10px">
+                Catatan: ini demo; tidak ada pemotongan saldo nyata.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Status + Log -->
+      <div class="stack">
+        <section class="card">
+          <div class="hd">
+            <h2>Status Transaksi</h2>
+            <span class="badge" id="statusBadge">Siap</span>
+          </div>
+          <div class="bd">
+            <div class="kv" style="margin-top:0">
+              <div class="k">Terakhir</div><div class="v" id="lastEvent">-</div>
+              <div class="k">Nominal</div><div class="v money" id="lastAmount">-</div>
+              <div class="k">Waktu</div><div class="v" id="lastTime">-</div>
+            </div>
+
+            <div class="muted" style="margin-top:12px">
+              Untuk produksi, status sukses harus berasal dari webhook resmi acquirer/payment gateway.
+            </div>
+          </div>
+        </section>
+
+        <section class="log">
+          <div class="lh">
+            <span>Aktivitas</span>
+            <span id="ts">-</span>
+          </div>
+          <pre id="log"></pre>
+        </section>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const logEl = document.getElementById("log");
+  const tsEl = document.getElementById("ts");
+
+  const connDot = document.getElementById("connDot");
+  const connText = document.getElementById("connText");
+
+  const invEl = document.getElementById("inv");
+  const payLinkA = document.getElementById("payLink");
+  const qrImg = document.getElementById("qrImg");
+
+  const btnNew = document.getElementById("btnNew");
+  const btnSpeakLast = document.getElementById("btnSpeakLast");
+  const btnCopy = document.getElementById("btnCopy");
+
+  const statusBadge = document.getElementById("statusBadge");
+  const lastEvent = document.getElementById("lastEvent");
+  const lastAmount = document.getElementById("lastAmount");
+  const lastTime = document.getElementById("lastTime");
+
+  let lastSpoken = "";
+  let lastPayUrl = "";
+
+  function nowStr(){
+    return new Date().toLocaleString("id-ID", { hour12: false });
+  }
+
+  function log(line){
+    const t = nowStr();
+    tsEl.textContent = t;
+    logEl.textContent = (`[${t}] ${line}\n` + (logEl.textContent || "")).slice(0, 7000);
+  }
+
+  function formatRupiah(n){
+    const num = Number(n);
+    if(!Number.isFinite(num)) return String(n);
+    return "Rp " + num.toLocaleString("id-ID");
+  }
+
+  function setConn(state){
+    if(state === "ok"){
+      connDot.className = "dot good";
+      connText.textContent = "Terhubung";
+    } else if(state === "bad"){
+      connDot.className = "dot bad";
+      connText.textContent = "Terputus";
+    } else {
+      connDot.className = "dot";
+      connText.textContent = "Menghubungkan…";
+    }
+  }
+
+  function setStatus(text){
+    statusBadge.textContent = text;
+  }
+
+  function speak(text){
+    if(!("speechSynthesis" in window)){
+      alert("Browser tidak mendukung Text-to-Speech.");
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "id-ID";
+    u.rate = 1.0;
+    window.speechSynthesis.speak(u);
+    lastSpoken = text;
+    btnSpeakLast.disabled = false;
+  }
+
+  async function newInvoice(){
+    setStatus("Menunggu pembayaran");
+    lastEvent.textContent = "Invoice dibuat";
+    lastAmount.textContent = "-";
+    lastTime.textContent = nowStr();
+
+    const r = await fetch("/api/invoice/new", { method:"POST", headers:{ "Content-Type":"application/json" }});
+    const j = await r.json();
+    if(!j.ok){
+      log("ERROR: gagal membuat invoice");
+      alert("Gagal membuat invoice");
+      return;
+    }
+
+    const fullPayUrl = location.origin + j.payUrl;
+    lastPayUrl = fullPayUrl;
+
+    invEl.textContent = j.invoiceId;
+    payLinkA.textContent = fullPayUrl;
+    payLinkA.href = fullPayUrl;
+
+    // QR image
+    qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=" + encodeURIComponent(fullPayUrl);
+
+    btnCopy.disabled = false;
+    log(`NEW invoice=${j.invoiceId}`);
+    speak("Silakan scan QR untuk pembayaran.");
+  }
+
+  async function copyLink(){
+    if(!lastPayUrl) return;
+    try{
+      await navigator.clipboard.writeText(lastPayUrl);
+      log("COPY link pembayaran berhasil");
+    }catch(e){
+      alert("Tidak bisa akses clipboard. Copy manual dari link.");
+    }
+  }
+
+  btnNew.addEventListener("click", newInvoice);
+  btnSpeakLast.addEventListener("click", () => lastSpoken && speak(lastSpoken));
+  btnCopy.addEventListener("click", copyLink);
+
+  // SSE
+  setConn("connecting");
+  const es = new EventSource("/events");
+
+  es.onopen = () => {
+    setConn("ok");
+    log("SSE connected");
+  };
+  es.onerror = () => {
+    setConn("bad");
+    log("SSE error / reconnecting…");
+  };
+
+  es.addEventListener("paid", (e) => {
+    const p = JSON.parse(e.data);
+    const msg = `Pembayaran senilai ${formatRupiah(p.amount)} berhasil`;
+
+    setStatus("Pembayaran diterima");
+    lastEvent.textContent = `PAID • ${p.invoiceId}`;
+    lastAmount.textContent = formatRupiah(p.amount);
+    lastTime.textContent = new Date(p.ts).toLocaleString("id-ID", { hour12:false });
+
+    log(`PAID invoice=${p.invoiceId} amount=${p.amount}`);
+    speak(msg);
+  });
+
+  setStatus("Siap");
+  log("Kasir siap. Klik 'Buat QR Pembayaran' untuk mulai.");
+</script>
+</body>
+</html>

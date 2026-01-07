@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pembayaran • Input Nominal</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --border: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.72);
+      --accent: #38bdf8;
+      --shadow: 0 12px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(1100px 700px at 20% -10%, rgba(56,189,248,.22), transparent 55%),
+        radial-gradient(900px 600px at 90% 0%, rgba(34,197,94,.14), transparent 45%),
+        var(--bg);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+    }
+    .card{
+      width: min(560px, 100%);
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      overflow:hidden;
+    }
+    header{
+      padding: 14px 16px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap: wrap;
+    }
+    header h1{
+      margin:0;
+      font-size: 13px;
+      letter-spacing:.2px;
+    }
+    .badge{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.05);
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:12px;
+      color: rgba(255,255,255,.86);
+      white-space:nowrap;
+    }
+    .bd{ padding: 16px; }
+    .muted{ color:var(--muted); font-size:12px; line-height: 1.45; }
+
+    .kv{
+      display:grid;
+      grid-template-columns: 120px 1fr;
+      gap: 8px 12px;
+      margin: 12px 0 14px;
+      padding: 12px;
+      border:1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(0,0,0,.18);
+    }
+    .k{ color:var(--muted); font-size:12px; }
+    .v{ color:var(--text); font-size:13px; font-weight:700; word-break:break-word; }
+
+    .field{ margin-top: 10px; display:grid; gap:8px; }
+    .label{ font-size:12px; color:var(--muted); }
+    input{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      outline:none;
+      font-size: 14px;
+    }
+    input:focus{
+      border-color: rgba(56,189,248,.65);
+      box-shadow: 0 0 0 4px rgba(56,189,248,.15);
+    }
+
+    .row{
+      margin-top: 14px;
+      display:flex;
+      gap:10px;
+      flex-wrap: wrap;
+      align-items:center;
+    }
+    button{
+      appearance:none;
+      border:1px solid rgba(56,189,248,.55);
+      background: rgba(56,189,248,.18);
+      color:var(--text);
+      padding: 11px 12px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor:pointer;
+      transition: transform .06s ease, background .12s ease, border-color .12s ease;
+      flex: 1 1 200px;
+    }
+    button:hover{
+      background: rgba(56,189,248,.25);
+      border-color: rgba(56,189,248,.75);
+    }
+    button:active{ transform: translateY(1px); }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
+
+    .ghost{
+      border-color: var(--border);
+      background: rgba(255,255,255,.06);
+      font-weight: 700;
+    }
+
+    .msg{
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      color: rgba(255,255,255,.86);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    /* Mobile refinements */
+    @media (max-width: 640px){
+      body{ padding: 14px; }
+      .bd{ padding: 14px; }
+      .kv{ grid-template-columns: 1fr; }
+      button{ flex: 1 1 100%; width:100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <header>
+      <h1>Pembayaran (Demo)</h1>
+      <span class="badge">Input Nominal</span>
+    </header>
+
+    <div class="bd">
+      <div class="muted">
+        Masukkan nominal pembayaran. Setelah submit, kasir akan menerima notifikasi real-time.
+      </div>
+
+      <div class="kv">
+        <div class="k">Invoice</div><div class="v" id="inv">-</div>
+        <div class="k">Status</div><div class="v" id="status">-</div>
+      </div>
+
+      <div class="field">
+        <div class="label">Nominal (Rp)</div>
+        <input id="amount" inputmode="numeric" placeholder="Contoh: 10000" />
+        <div class="muted">Angka saja (tanpa titik/koma). Contoh: 25000</div>
+      </div>
+
+      <div class="row">
+        <button id="btnPay">Bayar (Demo)</button>
+        <button class="ghost" id="btnFill" type="button">Isi Cepat 10.000</button>
+      </div>
+
+      <div class="msg" id="msg">Menunggu input…</div>
+
+      <div class="muted" style="margin-top:12px">
+        Catatan: ini simulasi, tidak ada pemotongan saldo nyata.
+      </div>
+    </div>
+  </div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const invoice = params.get("invoice");
+
+  const invEl = document.getElementById("inv");
+  const statusEl = document.getElementById("status");
+  const msgEl = document.getElementById("msg");
+  const amountEl = document.getElementById("amount");
+  const btnPay = document.getElementById("btnPay");
+  const btnFill = document.getElementById("btnFill");
+
+  invEl.textContent = invoice || "-";
+
+  function setMsg(t){ msgEl.textContent = t; }
+  function cleanAmount(v){ return String(v).replace(/[^\d.]/g, ""); }
+
+  async function refreshStatus(){
+    if(!invoice){
+      statusEl.textContent = "INVALID";
+      setMsg("Invoice tidak valid.");
+      btnPay.disabled = true;
+      return;
+    }
+    try{
+      const r = await fetch(`/api/invoice/${encodeURIComponent(invoice)}`);
+      const j = await r.json();
+      if(!j.ok){
+        statusEl.textContent = "NOT_FOUND";
+        setMsg("Invoice tidak ditemukan.");
+        btnPay.disabled = true;
+        return;
+      }
+      statusEl.textContent = j.status;
+      if(j.status === "PAID"){
+        btnPay.disabled = true;
+        setMsg("Invoice sudah dibayar. Anda bisa menutup halaman ini.");
+      }else{
+        setMsg("Silakan masukkan nominal dan tekan Bayar.");
+      }
+    }catch(e){
+      statusEl.textContent = "ERROR";
+      setMsg("Gagal memuat status. Coba refresh.");
+    }
+  }
+
+  btnFill.addEventListener("click", () => {
+    amountEl.value = "10000";
+    amountEl.focus();
+  });
+
+  btnPay.addEventListener("click", async () => {
+    if(!invoice) return;
+
+    const amt = cleanAmount(amountEl.value);
+    const amount = Number(amt);
+
+    if(!Number.isFinite(amount) || amount <= 0){
+      setMsg("Nominal tidak valid. Masukkan angka > 0.");
+      return;
+    }
+
+    btnPay.disabled = true;
+    setMsg("Memproses…");
+
+    try{
+      const r = await fetch(`/api/invoice/${encodeURIComponent(invoice)}/pay`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount })
+      });
+      const j = await r.json();
+      if(!j.ok){
+        btnPay.disabled = false;
+        setMsg("Gagal: " + (j.error || "unknown"));
+        return;
+      }
+      statusEl.textContent = "PAID";
+      setMsg(`Berhasil. Pembayaran demo sebesar Rp ${amount.toLocaleString("id-ID")} telah dikirim ke kasir.`);
+    }catch(e){
+      btnPay.disabled = false;
+      setMsg("Terjadi error jaringan. Coba ulang.");
+    }
+  });
+
+  refreshStatus();
+</script>
+</body>
+</html>
